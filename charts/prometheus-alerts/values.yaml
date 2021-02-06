@@ -1,0 +1,16 @@
+coredns:
+  enabled: true
+nodes:
+  enabled: true
+pv:
+  enabled: true
+workload:
+  enabled: true
+cluster:
+  enabled: true
+record:
+  enabled: true
+namespace:
+  enabled: true
+
+additionalGroups: []

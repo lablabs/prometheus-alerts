@@ -1,0 +1,69 @@
+{{- if .Values.coredns.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  labels:
+    {{- include "prometheus-alerts.labels" . | nindent 4 }}
+    role: alert-rules
+  name: {{ template "prometheus-alerts.fullname" . }}-coredns
+spec:
+  groups:
+  - name: CoreDNSRecord
+    rules:
+      - record: 'coredns:cache_hits_rate'
+        expr: |
+          sum by (kubernetes_cluster)((delta(coredns_cache_hits_total{instance!~"node-local-.*"}[1m])))
+      - record: 'coredns:cache_hits_rate_zscore'
+        expr: |
+          (coredns:cache_hits_rate - avg_over_time(coredns:cache_hits_rate[1d:10m]) ) / (stddev_over_time(coredns:cache_hits_rate[1d:10m]))
+      - record: 'coredns:requests_rate'
+        expr: |
+          sum(delta(coredns_dns_request_type_count_total{instance!~"node-local-.*"}[1m])) by (type, kubernetes_cluster)
+      - record: 'coredns:requests_rate_zscore'
+        expr: |
+          (coredns:requests_rate - avg_over_time(coredns:requests_rate[1d:10m]) ) / (stddev_over_time(coredns:requests_rate[1d:10m]))
+      - record: 'coredns:error_rate'
+        expr: |
+          sum(delta(coredns_dns_response_rcode_count_total{instance!~"node-local-.*"}[1m])) by(zone,rcode, kubernetes_cluster)
+      - record: 'coredns:error_rate_zscore'
+        expr: |
+          (coredns:error_rate - avg_over_time(coredns:error_rate[1d:10m]) ) / (stddev_over_time(coredns:error_rate[1d:10m]))
+      - record: 'coredns:requests_rate_zscore_abs'
+        expr: |
+          abs(coredns:cache_requests_rate_zscore)
+      - record: 'coredns:error_rate_zscore_abs'
+        expr: |
+          abs(coredns:cache_error_rate_zscore)
+      - record: 'coredns:cache_hits_rate_zscore_abs'
+        expr: |
+          abs(coredns:cache_hits_rate_zscore)
+  - name: CoreDNS
+    rules:
+      - alert: K8SCoreDNSErrorRateZScore
+        expr: 'coredns:error_rate_zscore_abs > 5'
+        for: 15m
+        labels:
+          severity: high
+        annotations:
+          identifier: {{`"{{ $labels.kubernetes_cluster }}"`}}
+          msg: "ZScore for CoreDNS Error rate is more than 5 for 15 min"
+          dashboard: "/d/LafhaviZz/coredns?orgId=1&from=now-6h&to=now&var-datasource=default&var-Cluster=kube-prod&var-Deployment=system-coredns-1"
+      - alert: K8SCoreDNSRequestsZScore
+        expr: 'coredns:requests_rate_zscore_abs > 5'
+        for: 15m
+        labels:
+          severity: high
+        annotations:
+          identifier: {{`"{{ $labels.kubernetes_cluster }}"`}}
+          msg: "ZScore for CoreDNS Request rate is more than 5 for 15 min"
+          dashboard: "/d/LafhaviZz/coredns?orgId=1&from=now-6h&to=now&var-datasource=default&var-Cluster=kube-prod&var-Deployment=system-coredns-1"
+      - alert: K8SCoreDNSCacheHitZScore
+        expr: 'coredns:cache_hits_rate_zscore_abs > 5'
+        for: 15m
+        labels:
+          severity: high
+        annotations:
+          identifier: {{`"{{ $labels.kubernetes_cluster }}"`}}
+          msg: "ZScore for CoreDNS Cache Hit rate is more than 5 for 15 min"
+          dashboard: "/d/LafhaviZz/coredns?orgId=1&from=now-6h&to=now&var-datasource=default&var-Cluster=kube-prod&var-Deployment=system-coredns-1"
+{{- end }}

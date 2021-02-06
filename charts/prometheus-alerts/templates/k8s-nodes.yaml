@@ -1,0 +1,134 @@
+{{- if .Values.nodes.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  labels:
+    {{- include "prometheus-alerts.labels" . | nindent 4 }}
+    role: alert-rules
+  name: {{ template "prometheus-alerts.fullname" . }}-k8s-node
+spec:
+  groups:
+  - name: k8s-node
+    rules:
+    - alert: K8SNodeNotReady
+      expr: kube_node_status_condition{condition!="Ready", status="true"} == 1
+      for: 30m
+      labels:
+        group: system
+        severity: high
+      annotations:
+        identifier: {{`"{{ $labels.kubernetes_cluster }}/{{ $labels.node }}"`}}
+        msg: "Node has been unready for more than an 1h because of {{`{{ $labels.condition }}`}}."
+        reason: "Node is not in optimal state."
+
+    - alert: K8SNodePodNumberUtilization
+      expr: |
+          (node:node_running_pod_count:sum / on(kubernetes_cluster, instance_name) node:node_status_pods_capacity: * 100) > 95
+      for: 30m
+      labels:
+        group: system
+        severity: high
+      annotations:
+        identifier: {{`"{{ $labels.kubernetes_cluster }}/{{ $labels.instance_name }}"`}}
+        msg: "Nodes number of POD ultilization has been over 95% for more than 5m."
+        reason: "Too many pods"
+        value: {{`"{{ printf \"%.2f\" $value }}%"`}}
+
+    - alert: K8SNodeCPUSaturation
+      expr: |
+        (sum by (kubernetes_cluster, instance_name)(node_load1{job=~"kubernetes_.+"}) / node:cpu:sum * 100) > 120
+      for: 10m
+      labels:
+        group: system
+        severity: high
+      annotations:
+        identifier: {{`"{{ $labels.kubernetes_cluster }}/{{ $labels.instance_name }}"`}}
+        msg: "Node CPU load has been saturated over 100% for more than 5m."
+        reason: "CPU requests cannot be fulfilled because of unavailability.  "
+        value: {{`"{{ printf \"%.2f\" $value }}%"`}}
+
+    - alert: K8SNodeCPUUtilization
+      expr: |
+        (node:node_container_cpu_usage_seconds:irate1m /  node:node_allocatable_cpu_cores:sum) * 100 > 90
+      for: 5m
+      labels:
+        group: system
+        severity: high
+      annotations:
+        identifier: {{`"{{ $labels.kubernetes_cluster }}/{{ $labels.instance_name }}"`}}
+        msg: "Node CPU ultilization by containers has been over 90% for more than 5m."
+        reason: "Node CPU ultilization by containers is high. Recalculate CPU request and limits."
+        value: {{`"{{ printf \"%.2f\" $value }}%"`}}
+
+    - alert: K8SNodeMemoryUtilization
+      expr: |
+        (node:node_container_memory_wss_bytes:sum / ON (kubernetes_cluster, instance_name) node:node_allocatable_memory_bytes:sum * 100) > 90
+      for: 5m
+      labels:
+        group: system
+        severity: high
+      annotations:
+        identifier: {{`"{{ $labels.kubernetes_cluster }}/{{ $labels.instance_name }}"`}}
+        msg: "Node memory ultilization by containers has been over 90% for more than 5m."
+        reason: "Node memory ultilization by containers is high. Recalculate Memory request and limits."
+        value: {{`"{{ printf \"%.2f\" $value }}%"`}}
+
+    - alert: K8SNodeNetworkErrors
+      expr: |
+        ((rate(node_network_transmit_errs_total{job=~"kubernetes_.+", device!~"veth.+"}[1m]) == 0) + (rate(node_network_receive_errs_total{job=~"kubernetes_.+", device!~"veth.+"}[1m]) == 0)) > 0
+      for: 1m
+      labels:
+        group: system
+        severity: warning
+      annotations:
+        identifier: {{`"{{ $labels.kubernetes_cluster }}/{{ $labels.instance_name }}/{{ $labels.device }}"`}}
+        msg: "Node network interface {{`{{ $labels.device }}`}} showing errors."
+        reason: "Network errors deteced on interface."
+        value: {{`"{{ printf \"%.2f\" $value }} err/sec"`}}
+
+    - alert: K8SNodeNetworkInterfaceFlapping
+      expr: changes(node_network_up{job="kubernetes_.+", interface!~"veth.+"}[1m]) > 2
+      for: 1m
+      labels:
+        group: system
+        severity: high
+      annotations:
+        identifier: {{`"{{ $labels.kubernetes_cluster }}/{{ $labels.instance_name }}/{{ $labels.interface }}"`}}
+        msg: "Node network interface {{`{{ $labels.interface }}`}} flapping."
+        reason: "Network interface flapping detected."
+        value: {{`"{{ printf \"%.2f\" $value }} flap/min"`}}
+
+    - alert: K8SNodeFileSystemRunningFull
+      expr: (node:node_filesystem_usage:ratio > 0.85) and (predict_linear(node:node_filesystem_avail:ratio[6h], 3600 * 24) < 0)
+      for: 30m
+      labels:
+        group: system
+        severity: warning
+      annotations:
+        identifier: {{`"{{ $labels.kubernetes_cluster }}/{{ $labels.instance_name }}/{{ $labels.mountpoint }}"`}}
+        msg: "Node filesystem will be full within the next 24 hours."
+        reason: "Filesystem on node running out of disk."
+
+    - alert: K8SNodeFileSystemRunningFull
+      expr: (node:node_filesystem_usage:ratio > 0.85) and (predict_linear(node:node_filesystem_avail:ratio[6h], 3600 * 2) < 0)
+      for: 30m
+      labels:
+        group: system
+        severity: high
+      annotations:
+        identifier: {{`"{{ $labels.kubernetes_cluster }}/{{ $labels.instance_name }}/{{ $labels.mountpoint }}"`}}
+        msg: "Node filesystem will be full within the next 2 hours."
+        reason: "Filesystem on node running out of disk."
+
+    - alert: K8SNodeClockSkewDetected
+      expr: abs(node_timex_offset_seconds) > 2
+      for: 1m
+      labels:
+        group: system
+        severity: critical
+      annotations:
+        identifier: {{`"{{ $labels.kubernetes_cluster }}/{{ $labels.instance_name }}"`}}
+        msg: "Node clock skew detected."
+        reason: "Timex offset has reached the critical threshold."
+        value: {{`"{{ printf \"%.2f\" $value }}s offset"`}}
+{{- end }}

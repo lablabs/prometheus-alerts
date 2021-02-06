@@ -1,0 +1,16 @@
+{{$dot := .}}
+{{- range .Values.additionalGroups }}
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  labels:
+    {{- include "prometheus-alerts.labels" $dot | nindent 4 }}
+    role: alert-rules
+  name: {{ template "prometheus-alerts.fullname" $dot }}-{{ .name | lower }}
+spec:
+  groups:
+    - name: {{ .name }}
+      rules:
+        {{- toYaml  .rules | nindent 8 }}
+---
+{{- end }}

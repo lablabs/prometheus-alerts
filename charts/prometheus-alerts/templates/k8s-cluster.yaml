@@ -1,0 +1,77 @@
+{{- if .Values.cluster.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  labels:
+    {{- include "prometheus-alerts.labels" . | nindent 4 }}
+    role: alert-rules
+  name: {{ template "prometheus-alerts.fullname" . }}-k8s-cluster
+spec:
+  groups:
+  - name: k8s-cluster
+    rules:
+    - alert: K8SStateMetricsDown
+      expr: absent(up{container=~".*state-metrics.*"} == 1)
+      for: 10m
+      labels:
+        group: system
+        severity: high
+
+      annotations:
+        identifier: {{`"prometheus/{{ $labels.kubernetes_cluster }}/{{ $labels.job }}//{{ $labels.kubernetes_name }}"`}}
+        msg: "KubeStateMetrics has disappeared from Prometheus target discovery for longer than 10m."
+        reason: "KubeStateMetrics is probably down."
+
+    - alert: K8SVersionMismatch
+      expr: count by(kubernetes_cluster)(count by (kubernetes_cluster, gitVersion) (label_replace(kubernetes_build_info{job=~"kubernetes_node.+"},"gitVersion","$1","gitVersion","(v[0-9]*.[0-9]*.[0-9]*).*"))) > 1
+      for: 1h
+      labels:
+        group: system
+        severity: warning
+      annotations:
+        identifier: {{`"{{ $labels.kubernetes_cluster }}"`}}
+        msg: "There has been different semantic versions of Kubernetes components running for more than 1h."
+        reason: "NodeExporter is probably down."
+        value: {{`"{{ printf \"%.2f\" $value }} versions"`}}
+
+    - alert: K8SClusterCPUOvercommit
+      expr: sum by(kubernetes_cluster) (namespace:kube_pod_container_resource_requests_cpu_cores:sum) / sum by(kubernetes_cluster) (kube_node_status_allocatable_cpu_cores{job=~"kubernetes_.+"}) - (sum by(kubernetes_cluster) (kube_node_status_allocatable_cpu_cores) - 1) / sum by(kubernetes_cluster) (kube_node_status_allocatable_cpu_cores) > 0
+      for: 1h
+      labels:
+        group: system
+        severity: warning
+      annotations:
+        identifier: {{`"{{ $labels.kubernetes_cluster }}"`}}
+        msg: "Cluster has overcommitted CPU resource requests for Pods and cannot tolerate node failure for more than 1h."
+        reason: ""
+        value: {{`"{{ printf \"%.2f\" $value }}%"`}}
+
+    - alert: K8SClusterMemoryOvercommit
+      expr: |
+         sum by (kubernetes_cluster)(namespace:kube_pod_container_resource_requests_memory_bytes:sum)
+            /
+          sum by (kubernetes_cluster)(kube_node_status_allocatable_memory_bytes{job=~"kubernetes_.+"})
+            -
+          (sum by (kubernetes_cluster)(kube_node_status_allocatable_memory_bytes)-1) / sum by (kubernetes_cluster)(kube_node_status_allocatable_memory_bytes) > 0
+      for: 1h
+      labels:
+        group: system
+        severity: warning
+      annotations:
+        identifier: {{`"{{ $labels.kubernetes_cluster }}"`}}
+        msg: "Cluster has overcommitted memory resource requests for Pods and cannot tolerate node failure for more than 1h."
+        reason: ""
+        value: {{`"{{ printf \"%.2f\" $value }}%"`}}
+
+    - alert: K8SClusterClientCertificateExpiration
+      expr: |
+        apiserver_client_certificate_expiration_seconds_count{job=~"kubernetes_.+"} > 0 and histogram_quantile(0.01, sum by (job, le) (rate(apiserver_client_certificate_expiration_seconds_bucket{job=~"kubernetes_.+"}[5m]))) < 86400
+      labels:
+        group: system
+        severity: high
+      annotations:
+        identifier: {{`"{{ $labels.kubernetes_cluster }}"`}}
+        msg: "Kubernetes client certificate used to authenticate to the apiserver is expiring in less than 2 hours"
+        reason: ""
+        value: {{`"{{ printf \"%.2f\" $value }}%"`}}
+{{- end }}

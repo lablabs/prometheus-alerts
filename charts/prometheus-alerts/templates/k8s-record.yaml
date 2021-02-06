@@ -1,0 +1,128 @@
+{{- if .Values.record.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  labels:
+    {{- include "prometheus-alerts.labels" . | nindent 4 }}
+    role: alert-rules
+  name: {{ template "prometheus-alerts.fullname" . }}-k8s-record
+spec:
+  groups:
+  - name: k8s-record
+    rules:
+    # Node record rules
+    - record: kube_node:node_boot_time_seconds_per_instance_name:sum
+      expr: |
+        sum without (private_ip, public_ip, instance, label_kubernetes_io_instance_type)(node_boot_time_seconds)
+
+    - record: 'node:node_status_pods_capacity:'
+      expr: |
+        label_replace(kube_node_status_capacity_pods{job=~"kubernetes_.+"},"instance_name", "$1", "node", "(.*)")
+
+    - record: 'node:node_running_pod_count:sum'
+      expr: |
+        label_replace(kubelet_running_pod_count{job=~"kubernetes_.+"}, "instance_name", "$1", "instance", "(.*)")
+
+    - record: 'node:cpu:sum'
+      expr: |
+        count by (kubernetes_cluster, instance_name) (node_cpu_seconds_total{job=~"kubernetes_.+", mode="system"})
+
+    - record: 'node:node_allocatable_cpu_cores:sum'
+      expr: |
+        label_replace(kube_node_status_allocatable_cpu_cores{job=~"kubernetes_.+"}, "instance_name", "$1", "instance", "(.*)")
+
+    - record: 'node:node_container_cpu_usage_seconds:irate1m'
+      expr: |
+        sum by(kubernetes_cluster, instance_name)(label_replace(irate(container_cpu_usage_seconds_total{job=~"kubernetes_.+",  container!="POD", container!=""}[1m]), "instance_name", "$1", "instance", "(.*)"))
+
+    - record: 'node:node_allocatable_memory_bytes:sum'
+      expr: |
+        label_replace(kube_node_status_allocatable_memory_bytes{job=~"kubernetes_.+"}, "instance_name", "$1", "node", "(.*)")
+
+    - record: 'node:node_container_memory_wss_bytes:sum'
+      expr: |
+        sum by(kubernetes_cluster, instance_name)(label_replace(container_memory_working_set_bytes{job=~"kubernetes_.+",  container!="POD", container!=""}, "instance_name", "$1", "instance", "(.*)"))
+
+    - record: 'node:node_filesystem_usage:ratio'
+      expr: |
+        max by (kubernetes_cluster, instance_name, mountpoint) ((node_filesystem_size_bytes{job=~"kubernetes_.+", fstype=~"ext[234]|btrfs|xfs|zfs"} - node_filesystem_avail_bytes{job=~"kubernetes_.+", fstype=~"ext[234]|btrfs|xfs|zfs"}) /  node_filesystem_size_bytes{job=~"kubernetes_.+", fstype=~"ext[234]|btrfs|xfs|zfs"})
+
+    - record: 'node:node_filesystem_avail:ratio'
+      expr: |
+        max by (kubernetes_cluster, instance_name, mountpoint) (node_filesystem_avail_bytes{job=~"kubernetes_.+", fstype=~"ext[234]|btrfs|xfs|zfs"} / node_filesystem_size_bytes{job=~"kubernetes_.+", fstype=~"ext[234]|btrfs|xfs|zfs"})
+
+    - record: 'kubelet:persistent_volume_avail:ratio'
+      expr: |
+        kubelet_volume_stats_available_bytes{job=~"kubernetes_.+"} / kubelet_volume_stats_capacity_bytes{job=~"kubernetes_.+"}
+
+    - record: 'kubelet:persistent_volume_usage:ratio'
+      expr: |
+        kubelet_volume_stats_used_bytes{job=~"kubernetes_.+"} / kubelet_volume_stats_capacity_bytes{job=~"kubernetes_.+"}
+
+    - record: 'kubelet:persistent_volume_inode_avail:ratio'
+      expr: |
+        kubelet_volume_stats_inodes_free{job=~"kubernetes_.+"} / kubelet_volume_stats_inodes{job=~"kubernetes_.+"}
+
+    - record: 'kubelet:persistent_volume_inode_usage:ratio'
+      expr: |
+        kubelet_volume_stats_inodes_used{job=~"kubernetes_.+"} / kubelet_volume_stats_inodes{job=~"kubernetes_.+"}
+
+    # Namespace record rules
+    - record: 'namespace:kube_pod_container_resource_requests_cpu_cores:sum'
+      expr: |
+        sum by(kubernetes_cluster, namespace, pod)(kube_pod_container_resource_requests_cpu_cores{job=~"kubernetes_.+"} * on (kubernetes_cluster, job, instance, namespace, pod) group_left(phase) (kube_pod_status_phase{job=~"kubernetes_.+", phase=~"^(Pending|Running)$"} == 1))
+
+    - record: 'namespace:kube_pod_container_resource_requests_memory_bytes:sum'
+      expr: |
+        sum by(kubernetes_cluster, namespace, pod)(kube_pod_container_resource_requests_memory_bytes{job=~"kubernetes_.+"} * on (kubernetes_cluster, job, instance, namespace, pod) group_left(phase) (kube_pod_status_phase{job=~"kubernetes_.+", phase=~"^(Pending|Running)$"} == 1))
+
+    # Cest/cet time records
+    # https://medium.com/@tom.fawcett/time-of-day-based-notifications-with-prometheus-and-alertmanager-1bf7a23b7695
+    - record: is_european_summer_time
+      expr: |
+        (vector(1) and (month() > 3 and month() < 10))
+        or
+        (vector(1) and (month() == 3 and (day_of_month() - day_of_week()) >= 25) and absent((day_of_month() >= 25) and (day_of_week() == 0)))
+        or
+        (vector(1) and (month() == 10 and (day_of_month() - day_of_week()) < 25) and absent((day_of_month() >= 25) and (day_of_week() == 0)))
+        or
+        (vector(1) and ((month() == 10 and hour() < 1) or (month() == 3 and hour() > 0)) and ((day_of_month() >= 25) and (day_of_week() == 0)))
+        or
+        vector(0)
+    - record: europe_london_time
+      expr: time() + 3600 * is_european_summer_time
+    - record: europe_london_hour
+      expr: hour(europe_london_time)
+    - record: central_europe_time
+      expr: time() + 3600 + 3600 * is_european_summer_time
+    - record: central_europe_hour
+      expr: hour(central_europe_time)
+    - record: kube_cronjob_last_execution
+      expr: |
+        label_replace(
+          label_replace(
+            max(
+              max by (job_name,kubernetes_cluster, namespace)(kube_job_status_start_time)
+              * ON(job_name,kubernetes_cluster,namespace) GROUP_RIGHT()
+              kube_job_labels{label_cron!=""}
+            ) BY (job_name, label_cron,kubernetes_cluster,namespace)
+            == ON(label_cron,kubernetes_cluster,namespace) GROUP_LEFT()
+            max(
+              max by (job_name, kubernetes_cluster,namespace)(kube_job_status_start_time)
+              * ON(job_name, kubernetes_cluster,namespace) GROUP_RIGHT()
+              kube_job_labels{label_cron!=""}
+            ) BY (label_cron, kubernetes_cluster,namespace),
+            "job", "$1", "job_name", "(.+)"),
+          "cronjob", "$1", "label_cron", "(.+)")
+    - record: kube_cronjob_last_failed
+      expr: |
+        clamp_max(
+          kube_cronjob_last_execution,
+        1)
+        * ON(job_name, kubernetes_cluster, namespace) GROUP_LEFT()
+        label_replace(
+          label_replace(
+            (kube_job_status_failed != 0),
+            "job", "$1", "job_name", "(.+)"),
+          "cronjob", "$1", "label_cron", "(.+)")
+{{- end }}

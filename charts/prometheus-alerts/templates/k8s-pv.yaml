@@ -1,0 +1,72 @@
+{{- if .Values.pv.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  labels:
+    {{- include "prometheus-alerts.labels" . | nindent 4 }}
+    role: alert-rules
+  name: {{ template "prometheus-alerts.fullname" . }}-k8s-pv
+spec:
+  groups:
+  - name: k8s-pv
+    rules:
+    - alert: K8SPersistentVolumeRunningFull
+      expr: (kubelet:persistent_volume_usage:ratio > 0.85) and (predict_linear(kubelet:persistent_volume_avail:ratio[6h], 3600 * 24) < 0)
+      for: 30m
+      labels:
+        group: system
+        severity: warning
+      annotations:
+        identifier: {{`"{{ $labels.kubernetes_cluster }}/{{ $labels.namespace }}/{{ $labels.persistentvolumeclaim }}"`}}
+        msg: "PersistentVolume will be full within the next 24 hours."
+
+    - alert: K8SPersistentVolumeRunningFull
+      expr: (kubelet:persistent_volume_usage:ratio > 0.85) and (predict_linear(kubelet:persistent_volume_avail:ratio[6h], 3600 * 2) < 0)
+      for: 30m
+      labels:
+        group: system
+        severity: high
+      annotations:
+        identifier: {{`"{{ $labels.kubernetes_cluster }}/{{ $labels.namespace }}/{{ $labels.persistentvolumeclaim }}"`}}
+        msg: "PersistentVolume will be full within the next 2 hours."
+
+    - alert: K8SPersistentVolumeInodesRunningFull
+      expr: (kubelet:persistent_volume_inode_usage:ratio > 0.85) and (predict_linear(kubelet:persistent_volume_inode_avail:ratio[6h], 3600 * 24) < 0)
+      for: 30m
+      labels:
+        group: system
+        severity: warning
+      annotations:
+        identifier: {{`"{{ $labels.kubernetes_cluster }}/{{ $labels.namespace }}/{{ $labels.persistentvolumeclaim }}"`}}
+        msg: "PersistentVolume inode will reached limit within the next 24 hours."
+
+    - alert: K8SPersistentVolumeInodesRunningFull
+      expr: (kubelet:persistent_volume_inode_usage:ratio > 0.85) and (predict_linear(kubelet:persistent_volume_inode_avail:ratio[6h], 3600 * 24) < 0)
+      for: 30m
+      labels:
+        group: system
+        severity: high
+      annotations:
+        identifier: {{`"{{ $labels.kubernetes_cluster }}/{{ $labels.namespace }}/{{ $labels.persistentvolumeclaim }}"`}}
+        msg: "PersistentVolume inode will reached limit within the next 2 hours."
+
+    - alert: K8SPersistentVolumePendingState
+      expr: kube_persistentvolume_status_phase{job=~"kubernetes_.+", phase="Pending"} > 0
+      for: 10m
+      labels:
+        group: system
+        severity: high
+      annotations:
+        identifier: {{`"{{ $labels.kubernetes_cluster }}/{{ $labels.persistentvolume }}"`}}
+        msg: "PersistentVolume has been in pending state for longer than 10m."
+
+    - alert: K8SPersistentVolumeFailedState
+      expr: kube_persistentvolume_status_phase{job=~"kubernetes_.+", phase="Failed"} > 0
+      for: 10m
+      labels:
+        group: system
+        severity: high
+      annotations:
+        identifier: {{`"{{ $labels.kubernetes_cluster }}/{{ $labels.persistentvolume }}"`}}
+        msg: "PersistentVolume has been in failed state for longer than 10m."
+{{- end }}

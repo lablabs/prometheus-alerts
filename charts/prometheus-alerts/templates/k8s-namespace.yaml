@@ -1,0 +1,56 @@
+{{- if .Values.namespace.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  labels:
+    {{- include "prometheus-alerts.labels" . | nindent 4 }}
+    role: alert-rules
+  name: {{ template "prometheus-alerts.fullname" . }}-k8s-namespace
+spec:
+  groups:
+  - name: k8s-namespace
+    rules:
+    - alert: K8SNamespaceCPUOvercommit
+      expr: |
+        (sum by(kubernetes_cluster, namespace, resourcequota)(kube_resourcequota{job=~"kubernetes_.+", type="hard", resource="cpu"})
+        / on (kubernetes_cluster) group_left()
+        sum by(kubernetes_cluster)(kube_node_status_allocatable_cpu_cores)) * 100 > 100
+      for: 10m
+      labels:
+        group: system
+        severity: high
+      annotations:
+        identifier: {{`"{{ $labels.kubernetes_cluster }}/{{ $labels.namespace }}/{{ $labels.resourcequota }}"`}}
+        msg: "Namespace has overcommitted CPU resource requests for longer than 10m."
+        value: {{`"{{ printf \"%.2f\" $value }}%"`}}
+
+    - alert: K8SNamespaceMemoryOvercommit
+      expr: |
+          (sum by(kubernetes_cluster, namespace, resourcequota)(kube_resourcequota{job=~"kubernetes_.+", type="hard", resource="memory"})
+            / on (kubernetes_cluster) group_left()
+          sum by(kubernetes_cluster)(kube_node_status_allocatable_memory_bytes)) * 100
+            > 100
+      for: 10m
+      labels:
+        group: system
+        severity: high
+      annotations:
+        identifier: {{`"{{ $labels.kubernetes_cluster }}/{{ $labels.namespace }}/{{ $labels.resourcequota }}"`}}
+        msg: "Namespace has overcommitted memory resource requests for longer than 10m."
+        value: {{`"{{ printf \"%.2f\" $value }}%"`}}
+
+    - alert: K8SNamespaceQuotaExceeded
+      expr: |
+          (kube_resourcequota{job=~"kubernetes_.+", type="used"}
+            / ignoring(instance, job, type)
+          (kube_resourcequota{job=~"kubernetes_.+", type="hard"} > 0)) * 100
+            > 90
+      for: 10m
+      labels:
+        group: system
+        severity: high
+      annotations:
+        identifier: {{`"{{ $labels.kubernetes_cluster }}/{{ $labels.namespace }}/{{ $labels.resourcequota }}/{{ $labels.resource }}"`}}
+        msg: "Namespace has been using more resource than 90% of quota for longer than 10m."
+        value: {{`"{{ printf \"%.2f\" $value }}%"`}}
+{{- end }}
