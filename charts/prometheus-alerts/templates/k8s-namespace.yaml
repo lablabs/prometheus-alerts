@@ -20,7 +20,7 @@ spec:
         group: system
         severity: high
       annotations:
-        identifier: {{`"{{ $labels.kubernetes_cluster }}/{{ $labels.namespace }}/{{ $labels.resourcequota }}"`}}
+        identifier: {{`"{{ $labels.namespace }}/{{ $labels.resourcequota }}"`}}
         msg: "Namespace has overcommitted CPU resource requests for longer than 10m."
         value: {{`"{{ printf \"%.2f\" $value }}%"`}}
 
@@ -35,7 +35,7 @@ spec:
         group: system
         severity: high
       annotations:
-        identifier: {{`"{{ $labels.kubernetes_cluster }}/{{ $labels.namespace }}/{{ $labels.resourcequota }}"`}}
+        identifier: {{`"{{ $labels.namespace }}/{{ $labels.resourcequota }}"`}}
         msg: "Namespace has overcommitted memory resource requests for longer than 10m."
         value: {{`"{{ printf \"%.2f\" $value }}%"`}}
 
@@ -50,7 +50,7 @@ spec:
         group: system
         severity: high
       annotations:
-        identifier: {{`"{{ $labels.kubernetes_cluster }}/{{ $labels.namespace }}/{{ $labels.resourcequota }}/{{ $labels.resource }}"`}}
+        identifier: {{`"{{ $labels.namespace }}/{{ $labels.resourcequota }}/{{ $labels.resource }}"`}}
         msg: "Namespace has been using more resource than 90% of quota for longer than 10m."
         value: {{`"{{ printf \"%.2f\" $value }}%"`}}
 {{- end }}

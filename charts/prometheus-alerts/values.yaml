@@ -12,5 +12,6 @@ record:
   enabled: true
 namespace:
   enabled: true
-
+etcd:
+  enabled: true
 additionalGroups: []

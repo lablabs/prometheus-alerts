@@ -1,0 +1,24 @@
+{{- if .Values.etcd.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  labels:
+    {{- include "prometheus-alerts.labels" . | nindent 4 }}
+    role: alert-rules
+  name: {{ template "prometheus-alerts.fullname" . }}-etcd
+spec:
+  namespaceSelector:
+    matchNames:
+      - kube-system
+  selector:
+    matchLabels:
+      k8s-app: etcd-manager-main
+  podMetricsEndpoints:
+  - relabelings:
+     -  sourceLabels: [__address__]
+        replacement: $1:8081
+        regex: ([^:]+)(?::\d+)?
+        action: replace
+        targetLabel: __address__
+    honorLabels: true
+{{- end }}

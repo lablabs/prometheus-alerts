@@ -17,10 +17,10 @@ spec:
         labels:
           severity: critical
         annotations:
-          identifier: {{`"{{ $labels.kubernetes_cluster }}/{{ $labels.namespace }}/{{ $labels.pod }}/{{ $labels.container }}"`}}
+          identifier: {{`"{{ $labels.namespace }}/{{ $labels.pod }}/{{ $labels.container }}"`}}
           msg: "Pod container is in crash loop for longer than 15m."
           reason: "This means that one of the containers in the pod has exited unexpectedly, and perhaps with a non-zero error code even after restarting."
-          value: {{`" printf \"%.2f\" $value }} / 5 min"`}}
+          value: {{`"{{ printf \"%.2f\" $value }} / 5 min"`}}
           dashboard: {{`"/d/-vN2sXuik/k8s-deployments-overview-with-ingress-nginx?orgId=1&var-Cluster={{ $labels.kubernetes_cluster }}&var-Namespace={{ $labels.namespace }}&var-Deployment={{ $labels.container }}"`}}
 
       - alert: K8SPodContainerErrImagePull
@@ -29,7 +29,7 @@ spec:
         labels:
           severity: high
         annotations:
-          indentifier: {{`"{{ $labels.kubernetes_cluster }}/{{ $labels.namespace }}/{{ $labels.pod }}/{{ $labels.container }}"`}}
+          identifier: {{`"{{ $labels.namespace }}/{{ $labels.pod }}/{{ $labels.container }}"`}}
           msg: "Pod container has an {{`{{ $labels.reason}}`}} for longer than 10m."
           reason: "General image pull error"
           dashboard: {{`"/d/-vN2sXuik/k8s-deployments-overview-with-ingress-nginx?orgId=1&var-Cluster={{ $labels.kubernetes_cluster }}&var-Namespace={{ $labels.namespace }}&var-Deployment={{ $labels.container }}"`}}
@@ -40,7 +40,7 @@ spec:
         labels:
           severity: high
         annotations:
-          indentifier: {{`"{{ $labels.kubernetes_cluster }}/{{ $labels.namespace }}/{{ $labels.pod }}/{{ $labels.container }}"`}}
+          identifier: {{`"{{ $labels.namespace }}/{{ $labels.pod }}/{{ $labels.container }}"`}}
           msg: {{`"Pod container has an {{ $labels.reason}} for longer than 10m."`}}
           reason: "Container image pull failed, kubelet is backing off image pull"
           dashboard: {{`"/d/-vN2sXuik/k8s-deployments-overview-with-ingress-nginx?orgId=1&var-Cluster={{ $labels.kubernetes_cluster }}&var-Namespace={{ $labels.namespace }}&var-Deployment={{ $labels.container }}"`}}
@@ -51,7 +51,7 @@ spec:
         labels:
           severity: high
         annotations:
-          indentifier: {{`"{{ $labels.kubernetes_cluster }}/{{ $labels.namespace }}/{{ $labels.pod }}/{{ $labels.container }}"`}}
+          identifier: {{`"{{ $labels.namespace }}/{{ $labels.pod }}/{{ $labels.container }}"`}}
           msg: {{`"Pod container has an {{ $labels.reason}} for longer than 10m."`}}
           reason: "Container creating stuck"
           dashboard: {{`"/d/-vN2sXuik/k8s-deployments-overview-with-ingress-nginx?orgId=1&var-Cluster={{ $labels.kubernetes_cluster }}&var-Namespace={{ $labels.namespace }}&var-Deployment={{ $labels.container }}"`}}
@@ -62,7 +62,7 @@ spec:
         labels:
           severity: high
         annotations:
-          indentifier: {{`"{{ $labels.kubernetes_cluster }}/{{ $labels.namespace }}/{{ $labels.pod }}/{{ $labels.container }}"`}}
+          identifier: {{`"{{ $labels.namespace }}/{{ $labels.pod }}/{{ $labels.container }}"`}}
           msg: {{`"Pod container has an {{ $labels.reason}} for longer than 10m."`}}
           reason: "Container Terminated and Kubelet is backing off the restart"
           dashboard: {{`"/d/-vN2sXuik/k8s-deployments-overview-with-ingress-nginx?orgId=1&var-Cluster={{ $labels.kubernetes_cluster }}&var-Namespace={{ $labels.namespace }}&var-Deployment={{ $labels.container }}"`}}
@@ -73,10 +73,10 @@ spec:
         labels:
           severity: warning
         annotations:
-          indentifier: {{`"{{ $labels.kubernetes_cluster }}/{{ $labels.namespace }}/{{ $labels.pod }}/{{ $labels.container }}"`}}
+          identifier: {{`"{{ $labels.namespace }}/{{ $labels.pod }}/{{ $labels.container }}"`}}
           msg: "Pod container CPU usage has been 150% over CPU requests for longer than 10m."
           reason: "Pod container CPU requests should be increased"
-          value: {{`" printf \"%.2f\" $value }}%"`}}
+          value: {{`"{{ printf \"%.2f\" $value }}%"`}}
           dashboard: {{`"/d/-vN2sXuik/k8s-deployments-overview-with-ingress-nginx?orgId=1&var-Cluster={{ $labels.kubernetes_cluster }}&var-Namespace={{ $labels.namespace }}&var-Deployment={{ $labels.container }}"`}}
 
       - alert: K8SPodContainerCPULimits
@@ -85,10 +85,10 @@ spec:
         labels:
           severity: high
         annotations:
-          indentifier: {{`"{{ $labels.kubernetes_cluster }}/{{ $labels.namespace }}/{{ $labels.pod }}/{{ $labels.container }}"`}}
+          identifier: {{`"{{ $labels.namespace }}/{{ $labels.pod }}/{{ $labels.container }}"`}}
           msg: "Pod container CPU usage has been more ultilized than 95% of CPU limits for longer than 10m."
           reason: "Pod container CPU limits should be increased"
-          value: {{`" printf \"%.2f\" $value }}%"`}}
+          value: {{`"{{ printf \"%.2f\" $value }}%"`}}
           dashboard: {{`"/d/-vN2sXuik/k8s-deployments-overview-with-ingress-nginx?orgId=1&var-Cluster={{ $labels.kubernetes_cluster }}&var-Namespace={{ $labels.namespace }}&var-Deployment={{ $labels.container }}"`}}
 
       - alert: K8SPodContainerCPUThrotlling
@@ -97,10 +97,10 @@ spec:
         labels:
           severity: warning
         annotations:
-          indentifier: {{`"{{ $labels.kubernetes_cluster }}/{{ $labels.namespace }}/{{ $labels.pod }}/{{ $labels.container }}"`}}
+          identifier: {{`"{{ $labels.namespace }}/{{ $labels.pod }}/{{ $labels.container }}"`}}
           msg: "Pod container CPU throtlling has been more than 50% for longer than 15m."
           reason: "Pod container CPU limits should be increased"
-          value: {{`" printf \"%.2f\" $value }}%"`}}
+          value: {{`"{{ printf \"%.2f\" $value }}%"`}}
           dashboard: {{`"/d/-vN2sXuik/k8s-deployments-overview-with-ingress-nginx?orgId=1&var-Cluster={{ $labels.kubernetes_cluster }}&var-Namespace={{ $labels.namespace }}&var-Deployment={{ $labels.container }}"`}}
 
       - alert: K8SPodContainerMemRequests
@@ -109,10 +109,10 @@ spec:
         labels:
           severity: warning
         annotations:
-          indentifier: {{`"{{ $labels.kubernetes_cluster }}/{{ $labels.namespace }}/{{ $labels.pod }}/{{ $labels.container }}"`}}
+          identifier: {{`"{{ $labels.namespace }}/{{ $labels.pod }}/{{ $labels.container }}"`}}
           msg: "Pod container Mem usage has been 150% over Mem requests for longer than 30m."
           reason: "Pod container Mem requests should be increased"
-          value: {{`" printf \"%.2f\" $value }}%"`}}
+          value: {{`"{{ printf \"%.2f\" $value }}%"`}}
           dashboard: {{`"/d/-vN2sXuik/k8s-deployments-overview-with-ingress-nginx?orgId=1&var-Cluster={{ $labels.kubernetes_cluster }}&var-Namespace={{ $labels.namespace }}&var-Deployment={{ $labels.container }}"`}}
 
       - alert: K8SPodContainerMemLimits
@@ -121,10 +121,10 @@ spec:
         labels:
           severity: high
         annotations:
-          indentifier: {{`"{{ $labels.kubernetes_cluster }}/{{ $labels.namespace }}/{{ $labels.pod }}/{{ $labels.container }}"`}}
+          identifier: {{`"{{ $labels.namespace }}/{{ $labels.pod }}/{{ $labels.container }}"`}}
           msg: "Pod container Mem usage has been more ultilized than 95% of Mem limits for longer than 5m."
           reason: "Pod container Mem limits should be increased"
-          value: {{`" printf \"%.2f\" $value }}%"`}}
+          value: {{`"{{ printf \"%.2f\" $value }}%"`}}
           dashboard: {{`"/d/-vN2sXuik/k8s-deployments-overview-with-ingress-nginx?orgId=1&var-Cluster={{ $labels.kubernetes_cluster }}&var-Namespace={{ $labels.namespace }}&var-Deployment={{ $labels.container }}"`}}
 
       - alert: K8SPodContainerFSSizeUsage
@@ -133,10 +133,10 @@ spec:
         labels:
           severity: high
         annotations:
-          indentifier: {{`"{{ $labels.kubernetes_cluster }}/{{ $labels.namespace }}/{{ $labels.pod }}/{{ $labels.container }}"`}}
+          identifier: {{`"{{ $labels.namespace }}/{{ $labels.pod }}/{{ $labels.container }}"`}}
           msg: "Pod container filesystem usage has been more than 90% of limits for longer than 30m."
           reason: "Pod container Mem limits should be increased"
-          value: {{`" printf \"%.2f\" $value }}%"`}}
+          value: {{`"{{ printf \"%.2f\" $value }}%"`}}
           dashboard: {{`"/d/-vN2sXuik/k8s-deployments-overview-with-ingress-nginx?orgId=1&var-Cluster={{ $labels.kubernetes_cluster }}&var-Namespace={{ $labels.namespace }}&var-Deployment={{ $labels.container }}"`}}
 
     - name: k8s-workload-pod
@@ -148,7 +148,7 @@ spec:
         labels:
           severity: high
         annotations:
-          indentifier: {{`"{{ $labels.kubernetes_cluster }}/{{ $labels.namespace }}/{{ $labels.pod }}"`}}
+          identifier: {{`"{{ $labels.namespace }}/{{ $labels.pod }}"`}}
           msg: "Pod has been in pending state for longer than 30m."
           reason: "The Pod has been accepted by the Kubernetes system, but one or more of the Container images has not been created. This includes time before being scheduled as well as time spent downloading images over the network, which could take a while."
 
@@ -158,7 +158,7 @@ spec:
         labels:
           severity: high
         annotations:
-          indentifier: {{`"{{ $labels.kubernetes_cluster }}/{{ $labels.namespace }}/{{ $labels.pod }}"`}}
+          identifier: {{`"{{ $labels.namespace }}/{{ $labels.pod }}"`}}
           msg: "Pod has been in unknown state for longer than 30m."
           reason: "For some reason the state of the Pod could not be obtained, typically due to an error in communicating with the host of the Pod."
           dashboard: {{`"/d/-vN2sXuik/k8s-deployments-overview-with-ingress-nginx?orgId=1&var-Cluster={{ $labels.kubernetes_cluster }}&var-Namespace={{ $labels.namespace }}&var-Deployment={{ $labels.container }}"`}}
@@ -172,10 +172,10 @@ spec:
         labels:
           severity: high
         annotations:
-          indentifier: {{`"{{ $labels.kubernetes_cluster }}/{{ $labels.namespace }}/{{ $labels.deployment }}"`}}
+          identifier: {{`"{{ $labels.namespace }}/{{ $labels.deployment }}"`}}
           msg: "Deployment has not the expected number of available replicas for longer than 30m."
           reason: ""
-          value: {{`" $value }}"`}}
+          value: {{`" {{ $value }}"`}}
           dashboard: {{`"/d/-vN2sXuik/k8s-deployments-overview-with-ingress-nginx?orgId=1&var-Cluster={{ $labels.kubernetes_cluster }}&var-Namespace={{ $labels.namespace }}&var-Deployment={{ $labels.container }}"`}}
 
       - alert: K8SDeploymentUpdatedReplicasMismatch
@@ -184,10 +184,10 @@ spec:
         labels:
           severity: high
         annotations:
-          indentifier: {{`"{{ $labels.kubernetes_cluster }}/{{ $labels.namespace }}/{{ $labels.deployment }}"`}}
+          identifier: {{`"{{ $labels.namespace }}/{{ $labels.deployment }}"`}}
           msg: "Deployment has not the expected number of updated replicas for longer than 30m."
           reason: ""
-          value: {{`" $value }}"`}}
+          value: {{`" {{ $value }}"`}}
           dashboard: {{`"/d/-vN2sXuik/k8s-deployments-overview-with-ingress-nginx?orgId=1&var-Cluster={{ $labels.kubernetes_cluster }}&var-Namespace={{ $labels.namespace }}&var-Deployment={{ $labels.container }}"`}}
 
       - alert: K8SDeploymentPending
@@ -196,10 +196,10 @@ spec:
         labels:
           severity: high
         annotations:
-          indentifier: {{`"{{ $labels.kubernetes_cluster }}/{{ $labels.namespace }}/{{ $labels.deployment }}"`}}
+          identifier: {{`"{{ $labels.namespace }}/{{ $labels.deployment }}"`}}
           msg: "Deployment generation does not match for longer than 15m"
           reason: "Deployment has failed but has not been rolled back"
-          value: {{`" $value }}"`}}
+          value: {{`" {{ $value }}"`}}
           dashboard: {{`"/d/-vN2sXuik/k8s-deployments-overview-with-ingress-nginx?orgId=1&var-Cluster={{ $labels.kubernetes_cluster }}&var-Namespace={{ $labels.namespace }}&var-Deployment={{ $labels.container }}"`}}
 
     - name: k8s-workload-statefulset
@@ -211,7 +211,7 @@ spec:
         labels:
           severity: high
         annotations:
-          indentifier: {{`"{{ $labels.kubernetes_cluster }}/{{ $labels.namespace }}/{{ $labels.statefulset }}"`}}
+          identifier: {{`"{{ $labels.namespace }}/{{ $labels.statefulset }}"`}}
           msg: "StatefulSet has not the expected number of ready replicas for longer than 15m."
 
       - alert: K8SStatefulSetUpdateNotRolledOut
@@ -231,7 +231,7 @@ spec:
         labels:
           severity: high
         annotations:
-          indentifier: {{`"{{ $labels.kubernetes_cluster }}/{{ $labels.namespace }}/{{ $labels.statefulset }}"`}}
+          identifier: {{`"{{ $labels.namespace }}/{{ $labels.statefulset }}"`}}
           msg: "StatefulSet has not been rolled out for longer than 15m."
 
       - alert: K8SStatefulSetPending
@@ -240,7 +240,7 @@ spec:
         labels:
           severity: high
         annotations:
-          indentifier: {{`"{{ $labels.kubernetes_cluster }}/{{ $labels.namespace }}/{{ $labels.statefulset }}"`}}
+          identifier: {{`"{{ $labels.namespace }}/{{ $labels.statefulset }}"`}}
           msg: "StatefulSet generation does not match for longer than 15m."
 
     - name: k8s-workload-daemonset
@@ -252,7 +252,7 @@ spec:
         labels:
           severity: high
         annotations:
-          indentifier: {{`"{{ $labels.kubernetes_cluster }}/{{ $labels.namespace }}/{{ $labels.daemonset }}"`}}
+          identifier: {{`"{{ $labels.namespace }}/{{ $labels.daemonset }}"`}}
           msg: "DaemonSet has not the expected number of ready replicas for longer than 15m."
 
       - alert: K8SDaemonSetNotScheduled
@@ -261,9 +261,9 @@ spec:
         labels:
           severity: high
         annotations:
-          indentifier: {{`"{{ $labels.kubernetes_cluster }}/{{ $labels.namespace }}/{{ $labels.daemonset }}"`}}
+          identifier: {{`"{{ $labels.namespace }}/{{ $labels.daemonset }}"`}}
           msg: "DaemonSet has not the expected number of desired replicas for longer than 15m."
-          value: {{`" $value }}"`}}
+          value: {{`" {{ $value }}"`}}
 
       - alert: K8SDaemonSetMissScheduled
         expr: kube_daemonset_status_number_misscheduled > 0
@@ -271,9 +271,9 @@ spec:
         labels:
           severity: high
         annotations:
-          indentifier: {{`"{{ $labels.kubernetes_cluster }}/{{ $labels.namespace }}/{{ $labels.daemonset }}"`}}
+          identifier: {{`"{{ $labels.namespace }}/{{ $labels.daemonset }}"`}}
           msg: "DaemonSet has been mischeduled for longer than 15m."
-          value: {{`" $value }}"`}}
+          value: {{`" {{ $value }}"`}}
 
     - name: k8s-workload-job
       rules:
@@ -283,6 +283,6 @@ spec:
         labels:
           severity: high
         annotations:
-          indentifier: {{`"{{ $labels.kubernetes_cluster }}/{{ $labels.namespace }}/{{ $labels.job_name }}"`}}
+          identifier: {{`"{{ $labels.namespace }}/{{ $labels.job_name }}"`}}
           msg: "Job failed to complete."
 {{- end }}

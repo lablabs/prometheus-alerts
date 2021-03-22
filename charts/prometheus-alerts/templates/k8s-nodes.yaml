@@ -17,7 +17,7 @@ spec:
         group: system
         severity: high
       annotations:
-        identifier: {{`"{{ $labels.kubernetes_cluster }}/{{ $labels.node }}"`}}
+        identifier: {{`"{{ $labels.node }}"`}}
         msg: "Node has been unready for more than an 1h because of {{`{{ $labels.condition }}`}}."
         reason: "Node is not in optimal state."
 
@@ -29,7 +29,7 @@ spec:
         group: system
         severity: high
       annotations:
-        identifier: {{`"{{ $labels.kubernetes_cluster }}/{{ $labels.instance_name }}"`}}
+        identifier: {{`"{{ $labels.instance_name }}"`}}
         msg: "Nodes number of POD ultilization has been over 95% for more than 5m."
         reason: "Too many pods"
         value: {{`"{{ printf \"%.2f\" $value }}%"`}}
@@ -42,7 +42,7 @@ spec:
         group: system
         severity: high
       annotations:
-        identifier: {{`"{{ $labels.kubernetes_cluster }}/{{ $labels.instance_name }}"`}}
+        identifier: {{`"{{ $labels.instance_name }}"`}}
         msg: "Node CPU load has been saturated over 100% for more than 5m."
         reason: "CPU requests cannot be fulfilled because of unavailability.  "
         value: {{`"{{ printf \"%.2f\" $value }}%"`}}
@@ -55,7 +55,7 @@ spec:
         group: system
         severity: high
       annotations:
-        identifier: {{`"{{ $labels.kubernetes_cluster }}/{{ $labels.instance_name }}"`}}
+        identifier: {{`"{{ $labels.instance_name }}"`}}
         msg: "Node CPU ultilization by containers has been over 90% for more than 5m."
         reason: "Node CPU ultilization by containers is high. Recalculate CPU request and limits."
         value: {{`"{{ printf \"%.2f\" $value }}%"`}}
@@ -68,7 +68,7 @@ spec:
         group: system
         severity: high
       annotations:
-        identifier: {{`"{{ $labels.kubernetes_cluster }}/{{ $labels.instance_name }}"`}}
+        identifier: {{`"{{ $labels.instance_name }}"`}}
         msg: "Node memory ultilization by containers has been over 90% for more than 5m."
         reason: "Node memory ultilization by containers is high. Recalculate Memory request and limits."
         value: {{`"{{ printf \"%.2f\" $value }}%"`}}
@@ -81,7 +81,7 @@ spec:
         group: system
         severity: warning
       annotations:
-        identifier: {{`"{{ $labels.kubernetes_cluster }}/{{ $labels.instance_name }}/{{ $labels.device }}"`}}
+        identifier: {{`"{{ $labels.instance_name }}/{{ $labels.device }}"`}}
         msg: "Node network interface {{`{{ $labels.device }}`}} showing errors."
         reason: "Network errors deteced on interface."
         value: {{`"{{ printf \"%.2f\" $value }} err/sec"`}}
@@ -93,7 +93,7 @@ spec:
         group: system
         severity: high
       annotations:
-        identifier: {{`"{{ $labels.kubernetes_cluster }}/{{ $labels.instance_name }}/{{ $labels.interface }}"`}}
+        identifier: {{`"{{ $labels.instance_name }}/{{ $labels.interface }}"`}}
         msg: "Node network interface {{`{{ $labels.interface }}`}} flapping."
         reason: "Network interface flapping detected."
         value: {{`"{{ printf \"%.2f\" $value }} flap/min"`}}
@@ -105,7 +105,7 @@ spec:
         group: system
         severity: warning
       annotations:
-        identifier: {{`"{{ $labels.kubernetes_cluster }}/{{ $labels.instance_name }}/{{ $labels.mountpoint }}"`}}
+        identifier: {{`"{{ $labels.instance_name }}/{{ $labels.mountpoint }}"`}}
         msg: "Node filesystem will be full within the next 24 hours."
         reason: "Filesystem on node running out of disk."
 
@@ -116,7 +116,7 @@ spec:
         group: system
         severity: high
       annotations:
-        identifier: {{`"{{ $labels.kubernetes_cluster }}/{{ $labels.instance_name }}/{{ $labels.mountpoint }}"`}}
+        identifier: {{`"{{ $labels.instance_name }}/{{ $labels.mountpoint }}"`}}
         msg: "Node filesystem will be full within the next 2 hours."
         reason: "Filesystem on node running out of disk."
 
@@ -127,7 +127,7 @@ spec:
         group: system
         severity: critical
       annotations:
-        identifier: {{`"{{ $labels.kubernetes_cluster }}/{{ $labels.instance_name }}"`}}
+        identifier: {{`"{{ $labels.instance_name }}"`}}
         msg: "Node clock skew detected."
         reason: "Timex offset has reached the critical threshold."
         value: {{`"{{ printf \"%.2f\" $value }}s offset"`}}

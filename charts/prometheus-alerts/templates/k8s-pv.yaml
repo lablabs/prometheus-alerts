@@ -17,7 +17,7 @@ spec:
         group: system
         severity: warning
       annotations:
-        identifier: {{`"{{ $labels.kubernetes_cluster }}/{{ $labels.namespace }}/{{ $labels.persistentvolumeclaim }}"`}}
+        identifier: {{`"{{ $labels.namespace }}/{{ $labels.persistentvolumeclaim }}"`}}
         msg: "PersistentVolume will be full within the next 24 hours."
 
     - alert: K8SPersistentVolumeRunningFull
@@ -27,7 +27,7 @@ spec:
         group: system
         severity: high
       annotations:
-        identifier: {{`"{{ $labels.kubernetes_cluster }}/{{ $labels.namespace }}/{{ $labels.persistentvolumeclaim }}"`}}
+        identifier: {{`"{{ $labels.namespace }}/{{ $labels.persistentvolumeclaim }}"`}}
         msg: "PersistentVolume will be full within the next 2 hours."
 
     - alert: K8SPersistentVolumeInodesRunningFull
@@ -37,7 +37,7 @@ spec:
         group: system
         severity: warning
       annotations:
-        identifier: {{`"{{ $labels.kubernetes_cluster }}/{{ $labels.namespace }}/{{ $labels.persistentvolumeclaim }}"`}}
+        identifier: {{`"{{ $labels.namespace }}/{{ $labels.persistentvolumeclaim }}"`}}
         msg: "PersistentVolume inode will reached limit within the next 24 hours."
 
     - alert: K8SPersistentVolumeInodesRunningFull
@@ -47,7 +47,7 @@ spec:
         group: system
         severity: high
       annotations:
-        identifier: {{`"{{ $labels.kubernetes_cluster }}/{{ $labels.namespace }}/{{ $labels.persistentvolumeclaim }}"`}}
+        identifier: {{`"{{ $labels.namespace }}/{{ $labels.persistentvolumeclaim }}"`}}
         msg: "PersistentVolume inode will reached limit within the next 2 hours."
 
     - alert: K8SPersistentVolumePendingState
@@ -57,7 +57,7 @@ spec:
         group: system
         severity: high
       annotations:
-        identifier: {{`"{{ $labels.kubernetes_cluster }}/{{ $labels.persistentvolume }}"`}}
+        identifier: {{`"{{ $labels.persistentvolume }}"`}}
         msg: "PersistentVolume has been in pending state for longer than 10m."
 
     - alert: K8SPersistentVolumeFailedState
@@ -67,6 +67,6 @@ spec:
         group: system
         severity: high
       annotations:
-        identifier: {{`"{{ $labels.kubernetes_cluster }}/{{ $labels.persistentvolume }}"`}}
+        identifier: {{`"{{ $labels.persistentvolume }}"`}}
         msg: "PersistentVolume has been in failed state for longer than 10m."
 {{- end }}

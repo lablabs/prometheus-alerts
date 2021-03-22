@@ -18,7 +18,7 @@ spec:
         severity: high
 
       annotations:
-        identifier: {{`"prometheus/{{ $labels.kubernetes_cluster }}/{{ $labels.job }}//{{ $labels.kubernetes_name }}"`}}
+        identifier: {{`"prometheus/{{ $labels.job }}//{{ $labels.kubernetes_name }}"`}}
         msg: "KubeStateMetrics has disappeared from Prometheus target discovery for longer than 10m."
         reason: "KubeStateMetrics is probably down."
 
