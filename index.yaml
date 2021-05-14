@@ -3,6 +3,16 @@ entries:
   prometheus-alerts:
   - apiVersion: v2
     appVersion: 0.1.0
+    created: "2021-05-14T14:12:51.172583949Z"
+    description: A Helm chart for Kubernetes
+    digest: f37e25f63ea1722bdb46a154732dd13a9f1ec4f77b24e4fd48b0d587c90fa569
+    name: prometheus-alerts
+    type: application
+    urls:
+    - https://github.com/lablabs/prometheus-alerts/releases/download/prometheus-alerts-0.1.2/prometheus-alerts-0.1.2.tgz
+    version: 0.1.2
+  - apiVersion: v2
+    appVersion: 0.1.0
     created: "2021-02-06T13:06:29.777115558Z"
     description: A Helm chart for Kubernetes
     digest: 92e01ffd6917ab55dcd2111b9817784e2228dc75282607f67a4a5a75903e4615
